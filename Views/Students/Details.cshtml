@@ -1,0 +1,142 @@
+﻿@model SchoolFeesSystem.ViewModels.StudentDetailsViewModel
+
+@{
+    ViewData["Title"] = "Student Dossier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var totalOwed = Model.Fees.Sum(f => f.Amount);
+    var totalPaid = Model.Student.Payments.Sum(p => p.AmountPaid);
+    var overallBalance = totalOwed - totalPaid;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Student Profile</h3>
+        <p class="text-muted small">Viewing comprehensive records for <strong>@Model.Student.FullName</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Student.StudentId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn btn-light btn-sm rounded-pill border px-3">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center mb-4 overflow-hidden">
+            <div class="bg-primary py-4"></div>
+            <div class="card-body" style="margin-top: -50px;">
+                <img src="@Model.Student.PhotoPath" class="rounded-circle border border-4 border-white mb-3 shadow"
+                     style="width: 120px; height: 120px; object-fit: cover; background: white;"
+                     onerror="this.src='/images/default-user.png'" />
+
+                <h4 class="fw-bold mb-1">@Model.Student.FullName</h4>
+                <p class="text-muted small mb-3">@Model.Student.Class.ClassName • ID: #STU-@Model.Student.StudentId.ToString("D3")</p>
+
+                <div class="p-3 rounded-3 bg-light text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Total Billed:</span>
+                        <span class="fw-bold small">GHS @totalOwed.ToString("N2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Total Paid:</span>
+                        <span class="text-success fw-bold small">GHS @totalPaid.ToString("N2")</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="small fw-bold">Outstanding:</span>
+                        <span class="fw-bold @(overallBalance > 0 ? "text-danger" : "text-success")">GHS @overallBalance.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4">
+            <h6 class="fw-bold text-uppercase small text-muted mb-3">Personal Details</h6>
+            <div class="mb-2">
+                <label class="d-block small text-muted">Gender</label>
+                <span class="fw-medium">@Model.Student.Gender</span>
+            </div>
+            <div>
+                <label class="d-block small text-muted">Enrollment Date</label>
+                <span class="fw-medium">@Model.Student.DateOfBirth?.ToString("dd MMM, yyyy")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3">
+                <ul class="nav nav-pills" id="studentTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active rounded-pill px-4" id="fees-tab" data-bs-toggle="tab" data-bs-target="#fees" type="button">Fee History</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link rounded-pill px-4" id="guardians-tab" data-bs-toggle="tab" data-bs-target="#guardians" type="button">Guardians</button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body tab-content">
+                <div class="tab-pane fade show active" id="fees">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr class="small text-muted text-uppercase">
+                                    <th class="py-3">Term/Year</th>
+                                    <th class="py-3">Bill</th>
+                                    <th class="py-3">Paid</th>
+                                    <th class="py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var fee in Model.Fees)
+                                {
+                                    var paid = Model.Student.Payments.Where(p => p.FeeId == fee.FeeId).Sum(p => p.AmountPaid);
+                                    var bal = fee.Amount - paid;
+                                    <tr>
+                                        <td class="fw-bold">@fee.Term <br><small class="text-muted fw-normal">@fee.AcademicYear</small></td>
+                                        <td>GHS @fee.Amount.ToString("N2")</td>
+                                        <td class="text-success">GHS @paid.ToString("N2")</td>
+                                        <td>
+                                            @if (bal <= 0)
+                                            {
+                                                <span class="badge bg-soft-success text-success px-3" style="background: #ecfdf5;">Cleared</span>
+                                            }
+                                            else if (paid > 0)
+                                            {
+                                                <span class="badge bg-soft-warning text-warning px-3" style="background: #fffbeb;">Part-Paid</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-soft-danger text-danger px-3" style="background: #fef2f2;">Unpaid</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="guardians">
+                    <div class="row g-3">
+                        @foreach (var g in Model.Student.Guardians)
+                        {
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                                    <h6 class="fw-bold mb-2">@g.FullName</h6>
+                                    <div class="small text-muted mb-1"><i class="bi bi-telephone-fill me-2"></i>@g.Phone</div>
+                                    <div class="small text-muted mb-1"><i class="bi bi-whatsapp me-2"></i>@g.WhatsApp</div>
+                                    <div class="small text-muted"><i class="bi bi-envelope-fill me-2"></i>@g.Email</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

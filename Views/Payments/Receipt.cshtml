@@ -1,0 +1,198 @@
+﻿@model SchoolFeesSystem.Models.ViewModels.ReceiptVM
+
+@{
+    ViewData["Title"] = "Official Payment Receipt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .receipt-container {
+        background: #fff;
+        padding: 40px;
+        max-width: 850px;
+        margin: 20px auto;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .receipt-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 8rem;
+        color: rgba(0, 0, 0, 0.03);
+        pointer-events: none;
+        white-space: nowrap;
+        font-weight: 900;
+        z-index: 0;
+    }
+
+    .receipt-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .receipt-header {
+        border-bottom: 3px solid #3b82f6;
+        padding-bottom: 20px;
+    }
+
+    .school-name {
+        color: #1e293b;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+    }
+
+    .receipt-label {
+        background: #3b82f6;
+        color: white;
+        padding: 5px 20px;
+        display: inline-block;
+        border-radius: 4px;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+
+    .info-table th {
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        width: 30%;
+    }
+
+    .financial-table {
+        border: 1px solid #f1f5f9;
+    }
+
+        .financial-table th {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+    .amount-highlight {
+        font-size: 1.5rem;
+        color: #10b981;
+        font-weight: 700;
+    }
+
+    @@media print {
+        .no-print, header, .sidebar, footer {
+            display: none !important;
+        }
+
+        .receipt-container {
+            box-shadow: none;
+            border: none;
+            margin: 0;
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        body {
+            background: white;
+        }
+
+        .content-area {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+
+<div class="no-print mb-4 d-flex justify-content-between align-items-center" style="max-width:850px; margin: 0 auto;">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill">
+        <i class="bi bi-arrow-left"></i> Back to History
+    </a>
+    <button onclick="window.print();" class="btn btn-success rounded-pill shadow-sm">
+        <i class="bi bi-printer-fill me-2"></i> Print Official Receipt
+    </button>
+</div>
+
+<div class="receipt-container">
+    <div class="receipt-watermark text-uppercase">@Model.SchoolName</div> 
+
+    <div class="receipt-content">
+        <div class="receipt-header d-flex justify-content-between align-items-center">
+            <div>
+                <img src="@Url.Content(Model.LogoPath)" alt="Logo" style="height:80px; filter: grayscale(100%);" /> 
+            </div>
+            <div class="text-end">
+                <h2 class="school-name mb-1">@Model.SchoolName</h2>
+                <p class="text-muted small mb-0">@Model.SchoolAddress</p> 
+                <p class="text-muted small mb-0">Tel: @Model.SchoolPhone</p> 
+                <div class="receipt-label text-uppercase">Payment Receipt</div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-7">
+                <h6 class="fw-bold text-uppercase small text-primary mb-3">Student Details</h6>
+                <table class="table table-sm table-borderless info-table">
+                    <tr><th>Name</th><td class="fw-bold">@Model.StudentName</td></tr> 
+                    <tr><th>Class</th><td>@Model.ClassName</td></tr> 
+                    <tr><th>Academic Period</th><td>@Model.Term, @Model.AcademicYear</td></tr> 
+                </table>
+            </div>
+            <div class="col-md-5">
+                <h6 class="fw-bold text-uppercase small text-primary mb-3">Transaction Info</h6>
+                <table class="table table-sm table-borderless info-table">
+                    <tr><th>Ref No.</th><td class="fw-mono">@Model.Reference</td></tr> 
+                    <tr><th>Date</th><td>@Model.PaymentDate.ToString("MMMM dd, yyyy")</td></tr> 
+                    <tr><th>Method</th><td><span class="badge bg-light text-dark border">@Model.PaymentMethod</span></td></tr> 
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <table class="table table-bordered financial-table text-center align-middle">
+                <thead>
+                    <tr>
+                        <th class="py-3">Description</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3 text-end">Amount (GHS)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="text-start py-4">
+                            <div class="fw-bold">School Fees Payment</div>
+                            <small class="text-muted">Settlement for @Model.Term — @Model.AcademicYear</small> 
+                        </td>
+                        <td><span class="text-success small fw-bold"><i class="bi bi-patch-check-fill"></i> CONFIRMED</span></td>
+                        <td class="text-end amount-highlight">@Model.AmountPaid.ToString("N2")</td> 
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold py-3 bg-light">Remaining Balance Due</td>
+                        <td class="text-end fw-bold py-3 bg-light text-danger">GHS @Model.BalanceAfter.ToString("N2")</td> 
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="row mt-5 pt-4">
+            <div class="col text-center">
+                <div style="border-top: 1px solid #cbd5e1; width: 200px; margin: 0 auto;" class="mb-2"></div>
+                <small class="text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Accountant Signature</small>
+            </div>
+            <div class="col text-center">
+                <div class="mx-auto" style="width: 80px; height: 80px; border: 2px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <small class="text-muted small" style="font-size: 0.6rem;">OFFICIAL<br />STAMP</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-center">
+            <p class="text-muted" style="font-size: 0.7rem;">This is a computer-generated receipt. No signature is required unless otherwise stated. </p>
+            <div class="d-flex justify-content-center gap-4 mt-2">
+                <div class="small fw-bold" style="font-size: 0.6rem;"><i class="bi bi-globe me-1"></i> www.yourschool.com</div>
+                <div class="small fw-bold" style="font-size: 0.6rem;"><i class="bi bi-envelope me-1"></i> info@yourschool.com</div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,183 @@
+﻿@{
+    ViewData["Title"] = "Create Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body {
+        background: #f1f5f9;
+    }
+
+    .signup-container {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .signup-card {
+        width: 100%;
+        max-width: 500px;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        background: white;
+        padding: 3rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+    }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+    .btn-signup {
+        background-color: #3b82f6;
+        color: white;
+        font-weight: 600;
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: none;
+        width: 100%;
+        transition: 0.2s;
+        margin-top: 1rem;
+    }
+
+        .btn-signup:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+    .role-badge {
+        font-size: 0.7rem;
+        background: #eff6ff;
+        color: #3b82f6;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-left: 5px;
+    }
+</style>
+
+<div class="signup-container">
+    <div class="signup-card">
+        <div class="text-center mb-4">
+            <div class="bg-soft-primary d-inline-block p-3 rounded-circle mb-3" style="background: #e0e7ff;">
+                <i class="bi bi-person-plus-fill text-primary fs-3"></i>
+            </div>
+            <h4 class="fw-bold">Staff Registration</h4>
+            <p class="text-muted small">Create a new account to access the management portal</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success border-0 small shadow-sm mb-4">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            </div>
+        }
+
+        <form asp-action="Index" method="post">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                        <input name="fullName" class="form-control border-start-0" placeholder="e.g. John Doe" required />
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-at text-muted"></i></span>
+                        <input name="username" class="form-control border-start-0" placeholder="jdoe_admin" required />
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                        <input name="password" type="password" class="form-control border-start-0" placeholder="••••••••" required />
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Assign Role <span class="role-badge">Permissions</span></label>
+                    <select name="roleId" id="roleSelect" class="form-select" required>
+                        <option value="">-- Select Access Level --</option>
+
+                        @* FIX: Use ViewBag.Roles and check for null to prevent crashes *@
+                        @if (ViewBag.Roles != null)
+                        {
+                            @foreach (var role in ViewBag.Roles as SelectList)
+                            {
+                                <option value="@role.Value">@role.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 d-none" id="classSelectionGroup">
+                    <label class="form-label text-primary">Assigned Class</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-door-open text-primary"></i></span>
+                        <select name="classId" class="form-select border-start-0">
+                            <option value="">-- Select Class for Staff --</option>
+                            @if (ViewBag.Classes != null)
+                            {
+                                @foreach (var item in ViewBag.Classes as SelectList)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-signup">
+                Create Account
+            </button>
+
+            <div class="text-center mt-4">
+                <p class="small text-muted mb-0">
+                    Already have an account?
+                    <a asp-controller="Account" asp-action="Login" class="text-primary fw-bold text-decoration-none">Sign In</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Listen for changes on the role dropdown
+        document.getElementById('roleSelect').addEventListener('change', function () {
+            const selectedRoleName = this.options[this.selectedIndex].text;
+            const classGroup = document.getElementById('classSelectionGroup');
+
+            // If the role text contains "Staff", show the class selection
+            if (selectedRoleName.includes("Staff")) {
+                classGroup.classList.remove('d-none');
+            } else {
+                classGroup.classList.add('d-none');
+            }
+        });
+    </script>
+}

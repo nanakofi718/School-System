@@ -1,0 +1,40 @@
+﻿@model SchoolFeesSystem.Models.Student
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        .certificate-border {
+            border: 10px double #007bff;
+            padding: 50px;
+            text-align: center;
+        }
+
+        @@media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="p-5">
+    <div class="certificate-border">
+        <img src="@ViewBag.School.LogoPath" style="height:100px;"  /> 
+        <h1 class="display-4">@ViewBag.School.SchoolName</h1> 
+        <hr />
+        <h2 class="my-4">FINANCIAL CLEARANCE CERTIFICATE</h2>
+        <img src="@Model.PhotoPath" class="img-thumbnail mb-3" style="width:150px;" />
+        <p class="lead">This is to certify that <strong>@Model.FullName</strong></p> 
+        <p>of class <strong>@Model.Class.ClassName</strong> has fully paid all school fees.</p> 
+        <h3 class="text-success mt-4">STATUS: OFFICIALLY CLEARED</h3>
+        <div class="mt-5 d-flex justify-content-between">
+            <span>____________________<br />Bursar Signature</span>
+            <span>Date: @DateTime.Now.ToString("dd/MM/yyyy")</span>
+        </div>
+    </div>
+    <button onclick="window.print()" class="btn btn-primary mt-3 no-print">Print Certificate</button>
+</body>
+</html>

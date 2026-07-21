@@ -1,0 +1,24 @@
+﻿<div class="card border-0 shadow-sm p-4">
+    <h4 class="fw-bold mb-4">Batch Class Promotion</h4>
+    <form asp-action="PromoteStudents" method="post">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label class="small text-muted fw-bold">From Current Class</label>
+                <select name="fromClassId" class="form-select" asp-items="ViewBag.ClassId"></select>
+            </div>
+            <div class="col-md-1 text-center py-2">
+                <i class="bi bi-arrow-right-circle fs-3 text-primary"></i>
+            </div>
+            <div class="col-md-4">
+                <label class="small text-muted fw-bold">To Next Class</label>
+                <select name="toClassId" class="form-select" asp-items="ViewBag.ClassId"></select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm"
+                        onclick="return confirm('Are you sure you want to promote these students? This action is permanent.')">
+                    Run Promotion
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

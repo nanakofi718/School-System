@@ -1,0 +1,162 @@
+﻿@model SchoolFeesSystem.Models.ViewModels.DashboardVM
+
+@{
+    ViewData["Title"] = "Executive Overview";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Financial Analytics</h3>
+        <p class="text-muted">Real-time status of school collections</p>
+    </div>
+
+    <form method="get" class="d-flex gap-2">
+        <select name="term" class="form-select border-0 shadow-sm" style="width: 150px;">
+            <option value="">All Terms</option>
+            <option value="Term 1" selected="@(Model.SelectedTerm == "Term 1" ? "selected" : null)">Term 1</option>
+            <option value="Term 2" selected="@(Model.SelectedTerm == "Term 2" ? "selected" : null)">Term 2</option>
+            <option value="Term 3" selected="@(Model.SelectedTerm == "Term 3" ? "selected" : null)">Term 3</option>
+        </select>
+        <select name="academicYear" class="form-select border-0 shadow-sm" style="width: 150px;">
+            <option value="">All Years</option>
+            <option value="2025/2026" selected="@(Model.SelectedAcademicYear == "2025/2026" ? "selected" : null)">2025/2026</option>
+            <option value="2026/2027" selected="@(Model.SelectedAcademicYear == "2026/2027" ? "selected" : null)">2026/2027</option>
+        </select>
+        <button type="submit" class="btn btn-primary shadow-sm">
+            <i class="bi bi-filter"></i>
+        </button>
+    </form>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #10b981 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-light p-2 rounded-3 text-success">
+                        <i class="bi bi-cash-coin fs-4"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted mb-1">Total Collected</h6>
+                <h3 class="fw-bold mb-0">GHS @Model.TotalCollected.ToString("N2")</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #6366f1 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-light p-2 rounded-3 text-primary">
+                        <i class="bi bi-calendar-check fs-4"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted mb-1">Today's Revenue</h6>
+                <h3 class="fw-bold mb-0">GHS @Model.DailyTotal.ToString("N2")</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #f59e0b !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-light p-2 rounded-3 text-warning">
+                        <i class="bi bi-exclamation-triangle fs-4"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted mb-1">Outstanding Fees</h6>
+                <h3 class="fw-bold mb-0">GHS @Model.TotalOutstanding.ToString("N2")</h3> 
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #3b82f6 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="bg-light p-2 rounded-3 text-info">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                </div>
+                <h6 class="text-muted mb-1">Active Students</h6>
+                <h3 class="fw-bold mb-0">@Model.TotalStudents</h3> 
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Revenue Trends</h5>
+                <form method="get" asp-action="ExportToExcel">
+                    <input type="hidden" name="term" value="@Model.SelectedTerm" />
+                    <input type="hidden" name="academicYear" value="@Model.SelectedAcademicYear" />
+                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-download me-1"></i> Excel Report
+                    </button>
+                </form>
+            </div>
+            <canvas id="monthlyChart" style="height: 300px;"></canvas> 
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-4">Latest Transactions</h5>
+                <div class="list-group list-group-flush">
+                    @foreach (var p in Model.RecentPayments) 
+                    {
+                    <div class="list-group-item px-0 border-0 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-0 fw-bold">@p.StudentName</p>
+                                <small class="text-muted">@p.ClassName • @p.PaymentDate.ToString("dd MMM")</small> 
+                            </div>
+                            <span class="badge bg-soft-success text-success p-2" style="background: #ecfdf5;">
+                                +GHS @p.AmountPaid
+                            </span>
+                        </div>
+                    </div>
+                    }
+                </div>
+                <a asp-controller="Payments" asp-action="Index" class="btn btn-light w-100 mt-2">View All</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 1)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Months)), 
+                datasets: [{
+                    label: 'Collection Amount',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MonthlyCollections)), 
+                    backgroundColor: gradient,
+                    borderRadius: 10,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        }); 
+    </script>
+}

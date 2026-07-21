@@ -1,0 +1,105 @@
+﻿@using SchoolFeesSystem.Models
+@{
+    ViewData["Title"] = "New Transaction";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a asp-action="Index" class="text-decoration-none text-muted small fw-bold">
+                <i class="bi bi-arrow-left me-1"></i> Back to History
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="bg-soft-success text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background: #ecfdf5;">
+                        <i class="bi bi-wallet2 fs-3"></i>
+                    </div>
+                    <h4 class="fw-bold">Record Payment</h4>
+                    <p class="text-muted small">Input student payment details to update balance </p>
+                </div>
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small border-0 mb-4"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Student </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-person text-muted"></i></span>
+                                <select name="StudentId" class="form-select border-0 bg-light" asp-items="ViewBag.StudentId" required>
+                                    <option value="">-- Search Student --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Academic Year </label>
+                            <input name="AcademicYear" class="form-control border-0 bg-light" placeholder="2025/2026" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Term </label>
+                            <select name="Term" class="form-select border-0 bg-light" required>
+                                <option>Term 1</option>
+                                <option>Term 2</option>
+                                <option>Term 3</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="p-4 rounded-3 border bg-light bg-opacity-50">
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label small fw-bold text-secondary text-uppercase letter-spacing-1">Amount Paid (GHS) </label>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text bg-white border-0 fw-bold">₵</span>
+                                            <input name="AmountPaid" type="number" step="0.01" class="form-control border-0 fw-bold" placeholder="0.00" required />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Method </label>
+                                        <select name="PaymentMethod" class="form-select border-0">
+                                            @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
+                                            {
+                                                <option value="@method">@method</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Reference </label>
+                                        <input name="Reference" class="form-control border-0" placeholder="e.g. TRX-1002" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm">
+                            <i class="bi bi-check-circle-fill me-2"></i> Confirm & Record Transaction
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <p class="text-muted x-small">
+                <i class="bi bi-shield-lock me-1"></i>
+                Guardian will receive an automated SMS/WhatsApp notification upon confirmation.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

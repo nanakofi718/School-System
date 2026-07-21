@@ -1,0 +1,137 @@
+﻿@model IEnumerable<SchoolFeesSystem.Models.Student>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+
+@{
+    ViewData["Title"] = "Parent Portal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var username = Accessor.HttpContext?.Session.GetString("Username") ?? "guardian";
+    // Get a fallback email for Paystack from the first guardian found in the model
+    var guardianEmail = Model.FirstOrDefault()?.Guardians?.FirstOrDefault()?.Email ?? (username + "@school.com");
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h3 class="fw-bold">Guardian Dashboard</h3>
+        <p class="text-muted">Manage fees and track academic progress for your children.</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    <div class="row g-4">
+        @foreach (var student in Model)
+        {
+            var totalFees = student.Class?.Fees?.Sum(f => f.Amount) ?? 0;
+            var totalPaid = student.Payments?.Sum(p => p.AmountPaid) ?? 0;
+            var balance = totalFees - totalPaid;
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <img src="@(string.IsNullOrEmpty(student.PhotoPath) ? "/images/default-avatar.png" : student.PhotoPath)"
+                                 class="rounded-circle border me-3"
+                                 style="width:70px; height:70px; object-fit:cover;"
+                                 onerror="this.src='/images/default-avatar.png'" />
+                            <div>
+                                <h5 class="fw-bold mb-0">@student.FullName</h5>
+                                <span class="badge bg-soft-primary text-primary" style="background: #e0e7ff;">@student.Class?.ClassName</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <small class="text-muted d-block">Total Billed</small>
+                                    <span class="fw-bold small">GHS @totalFees.ToString("N2")</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 border rounded-3 bg-light text-center">
+                                    <small class="text-muted d-block">Outstanding</small>
+                                    <span class="fw-bold small text-danger">GHS @balance.ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            @if (balance > 0)
+                            {
+                                <div class="p-3 border rounded-3 mb-2 bg-white">
+                                    <label class="small fw-bold text-muted mb-2">Enter Amount to Pay (GHS)</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text bg-white border-end-0">₵</span>
+                                        <input type="number" id="payAmount-@student.StudentId" class="form-control border-start-0"
+                                               value="@balance" step="0.01" max="@balance" />
+                                    </div>
+                                    <button type="button" class="btn btn-success w-100 rounded-pill shadow-sm fw-bold"
+                                            onclick="payWithPaystack('@student.StudentId', '@student.FullName')">
+                                        <i class="bi bi-phone-vibrate me-2"></i> Pay with MoMo
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success text-center py-2 rounded-pill">
+                                    <i class="bi bi-check-circle me-2"></i> Fees Fully Paid
+                                </div>
+                            }
+
+                            <a asp-controller="Payments" asp-action="Statement" asp-route-studentId="@student.StudentId"
+                               class="btn btn-outline-dark rounded-pill py-2">
+                                <i class="bi bi-file-earmark-text me-2"></i> View Statement
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        function payWithPaystack(studentId, studentName) {
+            const amountInput = document.getElementById('payAmount-' + studentId);
+            const amount = amountInput.value;
+
+            if (!amount || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            const amountInPesevas = parseFloat(amount) * 100;
+
+            let handler = PaystackPop.setup({
+                key: 'pk_live_512bc1ce47c3a0f68e88786526192892f431069e', // REPLACE WITH YOUR ACTUAL KEY
+                email: '@guardianEmail',
+                amount: amountInPesevas,
+                currency: 'GHS',
+                ref: 'SCH-' + Math.floor((Math.random() * 1000000000) + 1),
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Student Name", variable_name: "student_name", value: studentName },
+                        { display_name: "Student ID", variable_name: "student_id", value: studentId }
+                    ]
+                },
+                callback: function(response) {
+                    // Redirect to your VerifyPayment action
+                    window.location.href = '/Guardian/VerifyPayment?reference=' + response.reference +
+                                         '&studentId=' + studentId +
+                                         '&amount=' + amount;
+                },
+                onClose: function() {
+                    console.log('Payment window closed');
+                }
+            });
+            handler.openIframe();
+        }
+    </script>
+}

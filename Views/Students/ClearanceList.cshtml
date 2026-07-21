@@ -1,0 +1,101 @@
+﻿@model List<SchoolFeesSystem.Models.ViewModels.StudentClearanceVM>
+
+@{
+    ViewData["Title"] = "Fee Clearance Center";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-0">Student Clearance</h3>
+        <p class="text-muted small">Monitor financial eligibility and dispatch reminders</p>
+    </div>
+    <div class="bg-white p-2 rounded shadow-sm border">
+        <span class="small fw-bold text-muted px-2">Status:</span>
+        <span class="badge bg-soft-success text-success p-2 mx-1" style="background:#ecfdf5;">Cleared</span>
+        <span class="badge bg-soft-danger text-danger p-2 mx-1" style="background:#fef2f2;">Owing</span>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Student Name</th>
+                    <th class="py-3 text-uppercase small fw-bold text-muted">Class</th>
+                    <th class="py-3 text-uppercase small fw-bold text-muted text-center">Financial Status</th>
+                    <th class="py-3 text-uppercase small fw-bold text-muted">Balance Due</th>
+                    <th class="pe-4 py-3 text-end text-uppercase small fw-bold text-muted">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr class="@(s.Status == "CLEARED" ? "" : "bg-light bg-opacity-10")">
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">@s.FullName</div>
+                            <small class="text-muted">ID: #00@s.StudentId</small>
+                        </td>
+                        <td>
+                            <span class="fw-medium">@s.ClassName</span>
+                        </td>
+                        <td class="text-center">
+                            @if (s.Status == "CLEARED")
+                            {
+                                <span class="badge rounded-pill bg-soft-success text-success px-3 py-2" style="background: #ecfdf5;">
+                                    <i class="bi bi-patch-check-fill me-1"></i> FULLY CLEARED
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-soft-danger text-danger px-3 py-2" style="background: #fef2f2;">
+                                    <i class="bi bi-exclamation-octagon-fill me-1"></i> OWING
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="fw-bold @(s.Status == "CLEARED" ? "text-muted" : "text-danger")">
+                                GHS @s.Balance.ToString("N2")
+                            </div>
+                            <div class="progress mt-1" style="height: 4px; width: 100px;">
+                                @{
+                                    var percentage = (s.TotalPaid / (s.TotalFee > 0 ? s.TotalFee : 1)) * 100;
+                                }
+                                <div class="progress-bar bg-success" role="progressbar" style="width: @percentage%"></div>
+                            </div>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                @if (s.Status == "OWING")
+                                {
+                                    <form asp-controller="Payments" asp-action="SendReminder" method="post" class="d-inline">
+                                        <input type="hidden" name="studentId" value="@s.StudentId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                            <i class="bi bi-send-fill me-1"></i> Remind
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a asp-action="PrintClearance" asp-route-id="@s.StudentId" class="btn btn-sm btn-success rounded-pill px-3">
+                                        <i class="bi bi-printer-fill me-1"></i> Certificate
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4 p-3 bg-white rounded shadow-sm border-start border-success border-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-info-square-fill text-success fs-4 me-3"></i>
+        <div class="small text-muted">
+            <strong>Pro Tip:</strong> Only students with a "FULLY CLEARED" status are eligible for the digital print certificate. Reminders are sent via  SMS/WhatsApp .
+        </div>
+    </div>
+</div>
